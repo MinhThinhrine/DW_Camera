@@ -1,0 +1,39 @@
+### Cấu trúc thư mục
+
+data_warehouse/
+│
+├── crawl_data/
+│   ├── scripts/              # Chứa các script thu thập dữ liệu
+│   ├── logs/                 # Thư mục lưu trữ log thu thập dữ liệu
+│   └── config/               # Cấu hình cho quá trình thu thập dữ liệu
+│
+├── process_data/
+│   ├── scripts/              # Chứa các script xử lý dữ liệu
+│   ├── intermediate/          # Dữ liệu tạm thời trong quá trình xử lý
+│   └── output/               # Kết quả xử lý dữ liệu
+│
+└── db_control/
+    ├── scripts/              # Chứa các script quản lý cơ sở dữ liệu
+    ├── logs/                 # Thư mục lưu trữ log của DB control
+    ├── config/               # Cấu hình cho các bảng log và config
+    ├── tables/               # Chứa các script tạo bảng trong DB
+    └── migrations/           # Quản lý các phiên bản của cơ sở dữ liệu
+
+### Mô tả chức năng của từng thư mục
+
+1. **`crawl_data/`**:
+   - **`scripts/`**: Chứa các script (Python, Java, etc.) dùng để thu thập dữ liệu từ web. Các script này có thể sử dụng thư viện như BeautifulSoup (Python) hoặc Jsoup (Java).
+   - **`logs/`**: Lưu trữ các file log để theo dõi quá trình thu thập dữ liệu, bao gồm thời gian thu thập, trạng thái thành công hay thất bại.
+   - **`config/`**: Chứa các file cấu hình cho các script thu thập dữ liệu (URL, thông tin đăng nhập, các tham số khác).
+
+2. **`process_data/`**:
+   - **`scripts/`**: Chứa các script để xử lý dữ liệu đã thu thập (chuyển đổi định dạng, tách dữ liệu, làm sạch dữ liệu).
+   - **`intermediate/`**: Lưu trữ dữ liệu tạm thời trong quá trình xử lý, có thể là các file CSV hoặc JSON.
+   - **`output/`**: Lưu trữ kết quả cuối cùng sau khi xử lý, sẵn sàng để đưa vào cơ sở dữ liệu.
+
+3. **`db_control/`**:
+   - **`scripts/`**: Chứa các script quản lý cơ sở dữ liệu, bao gồm việc thêm bảng log, thêm bảng cấu hình và các thao tác khác với cơ sở dữ liệu.
+   - **`logs/`**: Lưu trữ các file log liên quan đến cơ sở dữ liệu, theo dõi các thao tác đã thực hiện.
+   - **`config/`**: Chứa file cấu hình cho các bảng log và bảng cấu hình, có thể định nghĩa các tham số như tên bảng, kiểu dữ liệu.
+   - **`tables/`**: Chứa các script SQL để tạo bảng trong cơ sở dữ liệu, bao gồm bảng log để theo dõi quá trình thu thập dữ liệu và bảng cấu hình.
+   - **`migrations/`**: Quản lý các phiên bản của cơ sở dữ liệu, giúp thực hiện việc nâng cấp hoặc thay đổi cấu trúc cơ sở dữ liệu.
