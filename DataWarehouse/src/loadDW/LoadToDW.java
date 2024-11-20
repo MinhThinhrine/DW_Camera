@@ -69,9 +69,10 @@ public class LoadToDW {
     }
     // Tải dữ liệu từ datastagin vào bảng dim_price trong datawarehouse
     public void loadDimPrice() {
-        String selectQuery = "SELECT sc.camera_name, b.brand_name, sc.price, sc.discount, sc.updated_at " +
+        String selectQuery = "SELECT sc.camera_name, sc.brand_name, sc.price, sc.discount_percentage, sc.updated_at " +
                 "FROM staging_camera sc " +
-                "JOIN dim_brand b ON sc.brand_id = b.brand_id";
+                "LEFT JOIN dim_brand b ON sc.brand_name = b.brand_name";
+
         String insertQuery = "INSERT INTO dim_price (price_id, product_name, brand_name, current_price, discount_percentage, last_updated) VALUES (?, ?, ?, ?, ?, ?)";
         String maxIdQuery = "SELECT MAX(price_id) FROM dim_price";
 

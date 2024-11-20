@@ -11,7 +11,7 @@ public class DatabaseConnection {
     private static final String USER = "root"; // Tên người dùng
     private static final String PASSWORD = ""; // Mật khẩu
     // Thông tin kết nối cho datastagin
-    private static final String STAGING_URL = "jdbc:mysql://localhost:3306/datastagin";
+    private static final String STAGING_URL = "jdbc:mysql://localhost:3306/datastaging";
     private static final String STAGING_USER = "root";
     private static final String STAGING_PASSWORD = "";
 
