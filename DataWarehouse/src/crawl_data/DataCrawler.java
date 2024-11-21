@@ -1,30 +1,29 @@
 package crawl_data;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
+import db_control.*;
 import java.io.IOException;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
 
 public class DataCrawler {
 
-    public static List<Map<String, Object>> fetchData(String url) throws IOException {
+    public static List<Product> fetchData(String url) throws IOException {
         Document doc = Jsoup.connect(url).get();
-
-        List<Map<String, Object>> data = new ArrayList<>();
+        List<Product> products = new ArrayList<>();
 
         // Lấy thời gian hiện tại theo giờ UTC+7
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT+7"));
-        String formattedTime = sdf.format(new Date());
+        String formattedTime = sdf.format(new java.util.Date());
 
         // Các tên thuộc tính để lấy thông tin chi tiết
         String[] propertyNames = {
@@ -40,71 +39,106 @@ public class DataCrawler {
             String link = article.select("a").attr("href");
             String imageSrc = article.select("a.abt-single-image img").attr("data-srcset");
             String title = article.select("a.product-title").attr("title");
-            String price = article.select("span.ty-price-num").text().strip();
 
-            if (!imageSrc.isEmpty() && !price.isEmpty()) {
-                Map<String, Object> summary = new HashMap<>();
+            // Lấy giá và xử lý
+            String priceText = article.select("span.ty-price-num").text().strip();
+            String priceStr = priceText.replaceAll("[^\\d]", ""); // Chỉ giữ lại số
 
-                if (!link.isEmpty()) {
-                    // Ghi log: "Đang crawl"
-                    Log.logInProgress("Crawl May Anh");
+            if (!imageSrc.isEmpty() && !priceStr.isEmpty()) {
+                try {
+                    // Chuyển đổi chuỗi giá thành kiểu int
+                    int price = Integer.parseInt(priceStr);
 
-                    // Lấy chi tiết sản phẩm
-                    Document detailDoc = Jsoup.connect(link).get();
-                    Elements detailItems = detailDoc.select(".list_OMS5rN7R1Z li");
+                    Product product = new Product(link, imageSrc, title, price, "");
 
-                    for (int i = 0; i < detailItems.size() && i < propertyNames.length; i++) {
-                        String text = detailItems.get(i).text().strip();
-                        summary.put(propertyNames[i], text);
+                    if (!link.isEmpty()) {
+                        // Ghi log: "Đang crawl"
+                        Log_crawl.logInProgress("Đang crawl dữ liệu: " + title);
+
+                        // Lấy chi tiết sản phẩm
+                        Document detailDoc = Jsoup.connect(link).get();
+                        Elements detailItems = detailDoc.select(".list_OMS5rN7R1Z li");
+
+                        StringBuilder summaryBuilder = new StringBuilder();
+                        for (int i = 0; i < detailItems.size() && i < propertyNames.length; i++) {
+                            String text = detailItems.get(i).text().strip();
+                            summaryBuilder.append(propertyNames[i]).append(": ").append(text).append("\n");
+                        }
+                        product.setSummary(summaryBuilder.toString().trim());
+                        product.setRetrievalTime(formattedTime); // Ghi lại thời gian lấy dữ liệu
+
+                        // Ghi log: "Crawl hoàn thành"
+                        Log_crawl.logCompleted("Crawl hoàn thành sản phẩm: " + title);
                     }
 
-                    // Ghi log: "Crawl hoàn thành"
-                    Log.logCompleted("Crawl May Anh");
-                }
-
-                // Chỉ thêm sản phẩm nếu có thông tin về giá và summary
-                if (!summary.isEmpty()) {
-                    Map<String, Object> product = new HashMap<>();
-                    product.put("link", link);
-                    product.put("img_src", imageSrc);
-                    product.put("title", title);
-                    product.put("price", price);
-                    product.put("summary", summary);
-                    product.put("retrieval_time", formattedTime);
-
-                    data.add(product);
+                    // Thêm sản phẩm vào danh sách
+                    products.add(product);
+                } catch (NumberFormatException e) {
+                    Log_crawl.logError("Crawl May Anh", "Invalid price format for: " + priceStr);
                 }
             }
         }
 
-        return data;
+        return products;
     }
 
     public static void main(String[] args) {
-        // Ghi log trạng thái "Bắt đầu crawl"
-        Log.logStart("Crawl May Anh");
+        try (Connection connection = DbControl.getConnection()) {
+            // Ghi log trạng thái "Bắt đầu crawl"
+            Log_crawl.logStart("Bắt đầu quá trình crawl dữ liệu");
 
-        String[] urls = {
-                "https://zshop.vn/may-anh/",
-                "https://zshop.vn/may-anh/page-2/",
-                "https://zshop.vn/may-anh/page-3/"
-        };
+            // Cập nhật trạng thái trong config (crawl_status)
+            Config crawlConfig = new Config("crawl_status", "in_progress", "Quá trình crawl đang thực hiện");
+            DbControl.handleConfig(connection, crawlConfig, false);
 
-        List<Map<String, Object>> allData = new ArrayList<>();
+            String[] urls = {
+                    "https://zshop.vn/may-anh/",
+                    "https://zshop.vn/may-anh/page-2/",
+                    "https://zshop.vn/may-anh/page-3/"
+            };
 
-        for (String url : urls) {
-            try {
-                List<Map<String, Object>> pageData = fetchData(url);
-                allData.addAll(pageData);
-            } catch (IOException e) {
-                Log.logError("Crawl May Anh", "Error while fetching data from " + url + ": " + e.getMessage());
+            List<Product> allProducts = new ArrayList<>();
+
+            for (String url : urls) {
+                try {
+                    List<Product> pageProducts = fetchData(url);
+                    allProducts.addAll(pageProducts);
+                } catch (IOException e) {
+                    Log_crawl.logError("Crawl May Anh", "Error while fetching data from " + url + ": " + e.getMessage());
+                }
             }
+
+            // Cập nhật trạng thái trong config sau khi crawl xong
+            crawlConfig.setValue("completed");
+            crawlConfig.setDescription("Quá trình crawl đã hoàn thành");
+            DbControl.handleConfig(connection, crawlConfig, true);
+
+            // Ghi log trạng thái "Hoàn thành"
+            Log_crawl.logCompleted("Hoàn thành quá trình crawl dữ liệu");
+
+            // Gửi dữ liệu qua staging
+            sendToStaging(allProducts);
+
+            // In kết quả ra console
+            DecimalFormat decimalFormat = new DecimalFormat("#,###");
+            for (Product product : allProducts) {
+                System.out.println("----------------------------------------------");
+                System.out.println("Retrieval Time: " + product.getRetrievalTime());
+                System.out.println("Title: " + product.getTitle());
+                System.out.println("Price: " + decimalFormat.format(product.getPrice()) + " đ");
+                System.out.println("Summary: " + product.getSummary());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
 
-        // Ghi log trạng thái "Hoàn thành"
-        Log.logCompleted("Crawl May Anh");
-
-        // In kết quả ra console hoặc có thể lưu vào file nếu cần
-        System.out.println(allData);
+    private static void sendToStaging(List<Product> products) {
+        // Phương thức để gửi dữ liệu qua staging
+        for (Product product : products) {
+            // Có thể thêm mã để lưu vào cơ sở dữ liệu staging hoặc xử lý khác
+            System.out.println("Sending product to staging: " + product.getTitle());
+            // Thực hiện lưu vào staging ở đây
+        }
     }
 }

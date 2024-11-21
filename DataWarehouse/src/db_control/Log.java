@@ -1,44 +1,91 @@
 package db_control;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class Log {
+    private int idLog;
+    private LocalDateTime timestamp;
+    private String level;
+    private String message;
+    private String context;
+    private String stackTrace;
 
-    // Thông tin kết nối
-    private static final String URL = "jdbc:mysql://localhost:3306/dw"; // Đổi tên cơ sở dữ liệu nếu cần
-    private static final String USER = "root"; // Đổi tên người dùng nếu cần
-    private static final String PASSWORD = ""; // Đổi mật khẩu nếu cần
+    // Constructor
+    public Log(String level, String message, String context, String stackTrace) {
+        if (level == null || level.isEmpty()) {
+            throw new IllegalArgumentException("Level không được để trống.");
+        }
+        if (message == null || message.isEmpty()) {
+            throw new IllegalArgumentException("Message không được để trống.");
+        }
+        this.timestamp = LocalDateTime.now();
+        this.level = level;
+        this.message = message;
+        this.context = context != null ? context : "No Context"; // Giá trị mặc định
+        this.stackTrace = stackTrace;
+    }
 
-    // Phương thức ghi log
-    public void writeLog(String config, String status, String errorMessage) {
-        String sql = "INSERT INTO file_logs (config, status, timestamp, error_message) VALUES (?, ?, ?, ?)";
-
-        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            // Thiết lập giá trị cho các tham số
-            preparedStatement.setString(1, config);
-            preparedStatement.setString(2, status);
-            preparedStatement.setTimestamp(3, new java.sql.Timestamp(new Date().getTime()));
-            preparedStatement.setString(4, errorMessage);
-
-            // Thực hiện truy vấn
+    // Function lưu Log vào DB
+    public void saveToDb(Connection connection) throws SQLException {
+        String sql = "INSERT INTO Log (timestamp, level, message, context, stack_trace) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, this.timestamp);
+            preparedStatement.setString(2, this.level);
+            preparedStatement.setString(3, this.message);
+            preparedStatement.setString(4, this.context);
+            preparedStatement.setString(5, this.stackTrace != null ? this.stackTrace : ""); // Giá trị mặc định
             preparedStatement.executeUpdate();
-            System.out.println("Log đã được ghi thành công!");
-
-        } catch (SQLException e) {
-            System.out.println("Lỗi khi ghi log: " + e.getMessage());
         }
     }
 
-    public static void main(String[] args) {
-        Log logger = new Log();
-        // Ghi log mẫu
-        logger.writeLog("Sample Config", "Success", null); // Ghi log thành công
-        // logger.writeLog("Sample Config", "Error", "Lỗi khi thu thập dữ liệu."); // Ghi log lỗi
+    public int getIdLog() {
+        return idLog;
+    }
+
+    public void setIdLog(int idLog) {
+        this.idLog = idLog;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
+    }
+
+    public String getStackTrace() {
+        return stackTrace;
+    }
+
+    public void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
     }
 }
