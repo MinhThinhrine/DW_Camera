@@ -49,42 +49,49 @@ public class DataCrawler {
                 String priceText = article.select("span.ty-price-num").text().strip();
                 String priceStr = priceText.replaceAll("[^\\d]", ""); // Chỉ giữ lại số
 
-                if (!imageSrc.isEmpty() && !priceStr.isEmpty()) {
-                    try {
-                        // Chuyển đổi chuỗi giá thành kiểu int
-                        int price = Integer.parseInt(priceStr);
+                if (!imageSrc.isEmpty() && !priceStr.isEmpty()) try {
+                    // Chuyển đổi chuỗi giá thành kiểu int
+                    int price = Integer.parseInt(priceStr);
 
-                        Product product = new Product(link, imageSrc, title, price, "");
+                    Product product = new Product(link, imageSrc, title, price, "");
 
-                        if (!link.isEmpty()) {
-                            // Log: "Đang crawl"
-                            handleLog(connection, new Log("INFO", "Đang crawl dữ liệu: " + title, "Crawl Process", null));
+                    if (!link.isEmpty()) {
+                        // Log: "Đang crawl"
+                        handleLog(connection, new Log("INFO", "Đang crawl dữ liệu: " + title, "Crawl Process", null));
 
-                            // Lấy chi tiết sản phẩm
-                            Document detailDoc = Jsoup.connect(link).get();
-                            Elements detailItems = detailDoc.select(".list_OMS5rN7R1Z li");
+                        // Lấy chi tiết sản phẩm
+                        Document detailDoc = Jsoup.connect(link).get();
+                        Elements detailItems = detailDoc.select(".list_OMS5rN7R1Z li");
 
-                            StringBuilder summaryBuilder = new StringBuilder();
-                            for (int i = 0; i < detailItems.size() && i < propertyNames.length; i++) {
-                                String text = detailItems.get(i).text().strip();
-                                summaryBuilder.append(propertyNames[i]).append(": ").append(text).append("\n");
-                            }
-                            product.setSummary(summaryBuilder.toString().trim());
-                            product.setRetrievalTime(formattedTime); // Ghi lại thời gian lấy dữ liệu
+                        StringBuilder summaryBuilder = new StringBuilder();
 
-                            // Log: "Crawl hoàn thành"
-                            handleLog(connection, new Log("INFO", "Crawl hoàn thành sản phẩm: " + title, "Crawl Process", null));
+                        for (int i = 0; i < detailItems.size() && i < propertyNames.length; i++) {
+                            String text = detailItems.get(i).text().strip();
+                            summaryBuilder.append(propertyNames[i]).append(": ").append(text).append("\n");
                         }
 
-                        // Thêm sản phẩm vào danh sách
-                        products.add(product);
-                    } catch (NumberFormatException e) {
-                        DbControl.handleLogException(connection, "Invalid price format for: " + priceStr, "Crawl Process", e);
+                        String summary = summaryBuilder.toString().trim();
+                        product.setSummary(summary);
+                        product.setRetrievalTime(formattedTime); // Ghi lại thời gian lấy dữ liệu
+
+                        // Log: "Crawl hoàn thành"
+                        handleLog(connection, new Log("INFO", "Crawl hoàn thành sản phẩm: " + title, "Crawl Process", null));
+
+                        // Chỉ thêm sản phẩm vào danh sách nếu summary không rỗng
+                        if (!summary.isEmpty()) {
+                            products.add(product);
+                        } else {
+                            handleLog(connection, new Log("WARNNING", "Sản phẩm không có thông tin chi tiết: " + title, "Crawl Process", "No save"));
+                        }
                     }
+                } catch (NumberFormatException e) {
+                    DbControl.handleLogException(connection, "Sai định dạng giá: " + priceStr, "Crawl Process", e);
+                } catch (IOException e) {
+                    DbControl.handleLogException(connection, "Lỗi khi cào thông tin chi tiết: " + link, "Crawl Process", e);
                 }
             }
         } catch (IOException e) {
-            DbControl.handleLogException(connection, "Error while fetching data from " + url, "Crawl Process", e);
+            DbControl.handleLogException(connection, "Lỗi khi cào thông tin từ " + url, "Crawl Process", e);
         }
         return products;
     }
@@ -142,6 +149,7 @@ public class DataCrawler {
         catch(SQLException e){
                 DbControl.handleLogException(null, "SQL error during the crawl process", "Crawl Process", e);
             }
+        System.out.println("chạy");
     }
 
     private static String getCurrentDate() {
