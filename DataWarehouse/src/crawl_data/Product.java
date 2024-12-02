@@ -1,6 +1,6 @@
 package crawl_data;
 
-class Product {
+public class Product {
     private String link;
     private String imageSrc;
     private String title;
