@@ -152,11 +152,6 @@ public class DataCrawler {
         System.out.println("chạy");
     }
 
-    private static String getCurrentDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        sdf.setTimeZone(TimeZone.getTimeZone("GMT+7"));
-        return sdf.format(new java.util.Date());
-    }
     private static void sendToStaging(List<Product> products) throws SQLException {
         // Phương thức để gửi dữ liệu qua staging
         Stagging.loadToStaging(products);
