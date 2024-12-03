@@ -1,0 +1,9 @@
+org\example\load_staging.class
+org\example\dim_brand$1.class
+org\example\fact_price$1.class
+org\example\dim_product$1.class
+org\example\fact_price.class
+org\example\dim_brand.class
+org\example\dim_product.class
+org\example\load_staging$1.class
+org\example\Product.class
