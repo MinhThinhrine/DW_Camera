@@ -1,7 +1,8 @@
-package org.example;
+package loadToDW.loading;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.example.Product;
 
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
