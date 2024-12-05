@@ -1,17 +1,23 @@
 package crawl_data;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import loadtoStagging.Stagging;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import db_control.*;
+
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -98,67 +104,91 @@ public class DataCrawler {
 
     public static void main(String[] args) {
         try (Connection connection = DbControl.getConnection()) {
-                // Kiểm tra trạng thái crawl từ bảng config
-                if (!DbControl.canRunCrawl(connection)) {
-                    System.out.println("Crawl đã hoàn thành hôm nay. Không chạy lại.");
-                    handleLog(connection, new Log("INFO", "Crawl đã hoàn thành hôm nay. Không chạy lại.", "Check config", "CONFIG"));
+            // Kiểm tra trạng thái crawl từ bảng config
+            if (!DbControl.canRunCrawl(connection)) {
+                System.out.println("Crawl đã hoàn thành hôm nay. Không chạy lại.");
+                handleLog(connection, new Log("INFO", "Crawl đã hoàn thành hôm nay. Không chạy lại.", "Check config", "CONFIG"));
 
-                    return; // Thoát nếu đã crawl hôm nay
-                }
-
-                // Cập nhật trạng thái trong config (crawl_status)
-                Config crawlConfig = new Config("crawl_status", "in_progress", "Quá trình crawl đang thực hiện");
-                DbControl.handleConfig(connection, crawlConfig, false);
-
-                // Ghi log trạng thái "Bắt đầu crawl"
-                handleLog(connection, new Log("INFO", "Bắt đầu quá trình crawl dữ liệu", "Crawl Process", "START"));
-
-                String[] urls = {
-                        "https://zshop.vn/may-anh/",
-                        "https://zshop.vn/may-anh/page-2/",
-                        "https://zshop.vn/may-anh/page-3/"
-                };
-
-                List<Product> allProducts = new ArrayList<>();
-
-                for (String url : urls) {
-                    List<Product> pageProducts = fetchData(url, connection);
-                    allProducts.addAll(pageProducts);
-                }
-
-                // Cập nhật trạng thái trong config sau khi crawl xong
-                crawlConfig.setValue("completed");
-                crawlConfig.setDescription("Quá trình crawl đã hoàn thành");
-                DbControl.handleConfig(connection, crawlConfig, true);
-
-                // Ghi log trạng thái "Hoàn thành"
-                handleLog(connection, new Log("INFO", "Hoàn thành quá trình crawl dữ liệu", "Crawl Process", "END"));
-
-                // Gửi dữ liệu qua staging
-                sendToStaging(allProducts);
-                // In kết quả ra console
-                DecimalFormat decimalFormat = new DecimalFormat("#,###");
-                for (Product product : allProducts) {
-                    System.out.println("----------------------------------------------");
-                    System.out.println("Retrieval Time: " + product.getRetrievalTime());
-                    System.out.println("Title: " + product.getTitle());
-                    System.out.println("Price: " + decimalFormat.format(product.getPrice()) + " đ");
-                    System.out.println("Summary: " + product.getSummary());
-                }
+                return; // Thoát nếu đã crawl hôm nay
             }
-        catch(SQLException e){
-                DbControl.handleLogException(null, "SQL error during the crawl process", "Crawl Process", e);
+
+            // Cập nhật trạng thái trong config (crawl_status)
+            Config crawlConfig = new Config("crawl_status", "in_progress", "Quá trình crawl đang thực hiện");
+            DbControl.handleConfig(connection, crawlConfig, false);
+
+            // Ghi log trạng thái "Bắt đầu crawl"
+            handleLog(connection, new Log("INFO", "Bắt đầu quá trình crawl dữ liệu", "Crawl Process", "START"));
+
+            String[] urls = {
+                    "https://zshop.vn/may-anh/",
+                    "https://zshop.vn/may-anh/page-2/",
+                    "https://zshop.vn/may-anh/page-3/"
+            };
+
+            List<Product> allProducts = new ArrayList<>();
+
+            for (String url : urls) {
+                List<Product> pageProducts = fetchData(url, connection);
+                allProducts.addAll(pageProducts);
             }
-        System.out.println("chạy");
+
+            // Cập nhật trạng thái trong config sau khi crawl xong
+            crawlConfig.setValue("completed");
+            crawlConfig.setDescription("Quá trình crawl đã hoàn thành");
+            DbControl.handleConfig(connection, crawlConfig, true);
+
+            // Ghi log trạng thái "Hoàn thành"
+            handleLog(connection, new Log("INFO", "Hoàn thành quá trình crawl dữ liệu", "Crawl Process", "END"));
+
+            // Gửi dữ liệu qua staging
+            saveProductsToJson(allProducts);
+            // In kết quả ra console
+            DecimalFormat decimalFormat = new DecimalFormat("#,###");
+            for (Product product : allProducts) {
+                System.out.println("----------------------------------------------");
+                System.out.println("Retrieval Time: " + product.getRetrievalTime());
+                System.out.println("Title: " + product.getTitle());
+                System.out.println("Price: " + decimalFormat.format(product.getPrice()) + " đ");
+                System.out.println("Summary: " + product.getSummary());
+            }
+        } catch (SQLException e) {
+            DbControl.handleLogException(null, "SQL error during the crawl process", "Crawl Process", e);
+        }
     }
 
-    private static void sendToStaging(List<Product> products) throws SQLException {
-        // Phương thức để gửi dữ liệu qua staging
-        Stagging.loadToStaging(products);
+    public static void saveProductsToJson(List<Product> products) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create(); // Tạo đối tượng Gson
+        String folderPath = "src/data_json"; // Đường dẫn tới thư mục lưu trữ
+        String fileName = "data_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".json"; // Tạo tên file
+
+        // Thay thế dấu , bằng dấu ; trong các thuộc tính
         for (Product product : products) {
-            // Có thể thêm mã để lưu vào cơ sở dữ liệu staging hoặc xử lý khác
-            System.out.println("Sending product to staging: " + product.getTitle());
-            // Thực hiện lưu vào staging ở đây
+            product.setSummary(product.getSummary().replace(",", ";")); // Thay thế dấu ,
+            product.setTitle(product.getTitle().replace(",", ";")); // Thay thế dấu , trong title nếu cần
+        }
+
+        // Tạo thư mục nếu không tồn tại
+        File folder = new File(folderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        File jsonFile = new File(folderPath, fileName); // Tạo file JSON
+
+        try (FileWriter writer = new FileWriter(jsonFile)) {
+            gson.toJson(products, writer); // Chuyển đổi danh sách sản phẩm thành JSON và ghi vào file
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Ghi log lỗi
+            DbControl.handleLogException(null, "Lỗi khi lưu file: " + e.getMessage(), "Crawl Process", e);
+            return; // Dừng thực hiện nếu có lỗi
+        }
+
+// Ghi log thành công
+        try (Connection connection = DbControl.getConnection()) {
+            handleLog(connection, new Log("INFO", "Lưu data file json", "Crawl Process", "SAVED"));
+        } catch (SQLException e) {
+            DbControl.handleLogException(null, "SQL error during the crawl process", "Crawl Process", e);
         }
     }
 }
