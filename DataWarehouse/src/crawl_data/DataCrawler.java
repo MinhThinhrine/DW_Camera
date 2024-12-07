@@ -12,8 +12,6 @@ import db_control.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -154,7 +152,7 @@ public class DataCrawler {
     }
     public static void saveProductsToJson(List<Product> products) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create(); // Tạo đối tượng Gson
-        String folderPath = "src/data_json"; // Đường dẫn tới thư mục lưu trữ
+        String folderPath = "D:\\Intellij\\DW_Camera\\DataWarehouse\\src/data_json"; // Đường dẫn tới thư mục lưu trữ
         String fileName = "data_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".json"; // Tạo tên file
 
         // Thay thế dấu , bằng dấu ; trong các thuộc tính

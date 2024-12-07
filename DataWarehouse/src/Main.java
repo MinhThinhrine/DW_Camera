@@ -1,33 +1,22 @@
+import crawl_data.DataCrawler;
 import loadDW.LoadToDW;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) {
-//        try (
-//                Connection stagingConnection = DatabaseConnection.getStagingConnection();
-//                Connection dwConnection = DatabaseConnection.getDWConnection()
-//        ) {
-//            // Khởi tạo đối tượng LoadToDW
-//            LoadToDW loader = new LoadToDW(stagingConnection, dwConnection);
-//
-//            // Gọi các phương thức để tải dữ liệu
-//            System.out.println("Đang tải dữ liệu vào bảng dim_brand...");
-//            loader.loadDimBrand();
-//            System.out.println("Hoàn thành tải dữ liệu vào dim_brand.");
-//
-//            System.out.println("Đang tải dữ liệu vào bảng dim_product...");
-//            loader.loadDimProduct();
-//            System.out.println("Hoàn thành tải dữ liệu vào dim_product.");
-//
-//            System.out.println("Đang tải dữ liệu vào bảng dim_price...");
-//            loader.loadDimPrice();
-//            System.out.println("Hoàn thành tải dữ liệu vào dim_price.");
-//
-//        } catch (SQLException e) {
-//            System.err.println("Lỗi kết nối cơ sở dữ liệu: " + e.getMessage());
-//        }
+//        DataCrawler dc = new DataCrawler();
+//        dc.main(new String[]{"running"});
+        String filePath = "D:\\Intellij\\DW_Camera\\DataWarehouse\\src/output.txt"; // Đường dẫn đến file sẽ tạo ra
 
+        try (FileWriter writer = new FileWriter(filePath, true)) {
+            writer.write("Task ran successfully!\n");
+            System.out.println("File created: " + filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
