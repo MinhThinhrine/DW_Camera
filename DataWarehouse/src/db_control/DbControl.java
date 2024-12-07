@@ -15,7 +15,7 @@ import java.util.TimeZone;
 
 public class DbControl {
 
-    private static final String CONNECTION_STRING = "mongodb+srv://root:root@darius.yjud9.mongodb.net/?retryWrites=true&w=majority&appName=darius";
+    private static final String CONNECTION_STRING = "mongodb+srv://root:root@my-cluster.j9mcl.mongodb.net/?retryWrites=true&w=majority&appName=my-cluster";
     private static final String DATABASE_NAME = "Dbcontrol";
     private static final String CONFIG_COLLECTION_NAME = "Config";
     private static final String LOG_COLLECTION_NAME = "Log";

@@ -13,7 +13,7 @@ import static com.mongodb.client.model.Filters.nin;
 import static db_control.DbControl.handleLog;
 
 public class LoadToDW {
-    private static final String CONNECTION_URI = "mongodb+srv://root:root@darius.yjud9.mongodb.net/?retryWrites=true&w=majority&appName=darius";
+    private static final String CONNECTION_URI = "mongodb+srv://root:root@my-cluster.j9mcl.mongodb.net/?retryWrites=true&w=majority&appName=my-cluster";
     private static final String STAGING_DATABASE = "Staging";
     private static final String STAGING_PRODUCT = "productStagging";
     private static final String DATA_WAREHOUSE_DATABASE = "DataWarehouse";
@@ -63,6 +63,7 @@ public class LoadToDW {
             dimProduct.deleteMany(nin("title", stagingTitles));
 
             handleLog(new Log("INFO", "Hoàn thành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
+            handleLog(new Log("INFO", "Đã xong!", "Data warehouse", null));
         }
     }
 
