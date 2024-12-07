@@ -42,7 +42,7 @@ public class LoadToDW {
             // it will insert a new one. If it exists, it updates it.
             for (var doc : productStaging.find()) {
                 var title = doc.getString("title");
-                doc.put("saved_time", Instant.now());
+                doc.put("saved_time", Instant.now().toString());
                 dimProduct.updateOne(
                         eq("title", title),
                         new Document("$set", doc),
