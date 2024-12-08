@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="gson-2.10.1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../../Tài liệu/gson-2.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../Tài liệu/jackson-core-2.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../Tài liệu/jsoup-1.18.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../Tài liệu/mongo-java-driver-3.12.14.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../Tài liệu/mongo-server-api-0.20.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../Tài liệu/slf4j-api-2.1.0-alpha1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
