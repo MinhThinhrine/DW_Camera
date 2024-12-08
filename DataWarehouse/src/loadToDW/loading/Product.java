@@ -1,4 +1,4 @@
-package org.example;
+package loadToDW.loading;
 
 import java.util.Map;
 
