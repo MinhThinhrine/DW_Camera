@@ -39,6 +39,18 @@ public class EmailNotifier {
         sendEmail(subject, body);
     }
 
+    // Hàm gửi email thông báo "Code hôm nay đã chạy và không cần chạy lại"
+    public static void sendAlreadyRunNotification() {
+        String subject = "📢 Thông báo: Code hôm nay đã chạy xong";
+        String body = """
+                <h2>Thông báo từ hệ thống</h2>
+                <p><strong>Kết quả:</strong> <span style="color: blue;">Đã hoàn tất</span></p>
+                <p>Hệ thống đã chạy thành công hôm nay. Không cần chạy lại.</p>
+                """;
+
+        sendEmail(subject, body);
+    }
+
     // Hàm gửi email chung
     private static void sendEmail(String subject, String body) {
         Properties properties = new Properties();
@@ -77,5 +89,8 @@ public class EmailNotifier {
 
         // Gửi email thành công
         sendSuccessNotification();
+
+        // Gửi thông báo code đã chạy xong
+        sendAlreadyRunNotification();
     }
 }

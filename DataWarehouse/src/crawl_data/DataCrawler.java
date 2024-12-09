@@ -93,14 +93,25 @@ public class DataCrawler {
                         }
                     }
                 } catch (NumberFormatException e) {
-                    DbControl.handleLogException(  "Sai định dạng giá: " + priceStr, "Crawl Process", e);
+                    String errorDetails = "Sai định dạng giá: " + priceStr;
+                    DbControl.handleLogException(errorDetails, "Crawl Process", e);
+                    // Gửi email thông báo lỗi
+                    EmailNotifier.sendFailureNotification(errorDetails + "\n" + e.getMessage());
                 } catch (IOException e) {
-                    DbControl.handleLogException(  "Lỗi khi cào thông tin chi tiết: " + link, "Crawl Process", e);
+                    String errorDetails = "Lỗi khi cào thông tin chi tiết: " + link;
+                    DbControl.handleLogException(errorDetails, "Crawl Process", e);
+                    // Gửi email thông báo lỗi
+                    EmailNotifier.sendFailureNotification(errorDetails + "\n" + e.getMessage());
                 }
+
             }
         } catch (IOException e) {
-            DbControl.handleLogException(  "Lỗi khi cào thông tin từ " + url, "Crawl Process", e);
+            String errorDetails = "Lỗi khi cào thông tin từ " + url;
+            DbControl.handleLogException(errorDetails, "Crawl Process", e);
+            // Gửi email thông báo lỗi
+            EmailNotifier.sendFailureNotification(errorDetails + "\n" + e.getMessage());
         }
+
         return products;
     }
 
@@ -115,6 +126,7 @@ public class DataCrawler {
             /// Ghi log và end task nếu đã chạy
             System.out.println("Crawl đã hoàn thành hôm nay. Không chạy lại.");
             handleLog(new Log("INFO", "Crawl đã hoàn thành hôm nay. Không chạy lại.", "Check config", "CONFIG"));
+            EmailNotifier.sendAlreadyRunNotification();
             return; // Thoát nếu đã crawl hôm nay
         }
 
@@ -151,10 +163,11 @@ public class DataCrawler {
         /// 8. Ghi log
         // Ghi log trạng thái "Hoàn thành"
         handleLog(new Log("INFO", "Hoàn thành quá trình crawl dữ liệu", "Crawl Process", "END"));
-
+        EmailNotifier.sendSuccessNotification();
         /// 9. Lưu file dạng json
         // Gửi dữ liệu qua staging
         saveProductsToJson(allProducts);
+
 
         // In kết quả ra console
         DecimalFormat decimalFormat = new DecimalFormat("#,###");
