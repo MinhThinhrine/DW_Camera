@@ -22,23 +22,23 @@ import static db_control.DbControl.handleLog;
 
 public class load_staging {
 
-    // Hàm lấy file JSON mới nhất trong thư mục
+    ///1. Hàm lấy file JSON mới nhất trong thư mục
     public static File getLatestJsonFile(String folderPath) {
         File folder = new File(folderPath);
 
-        // Lọc file JSON trong thư mục
+        ///1.1  Lọc file JSON trong thư mục
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
         if (files == null || files.length == 0) {
             throw new RuntimeException("Không tìm thấy file JSON nào trong thư mục " + folderPath);
         }
 
-        // Sắp xếp file theo tên giảm dần
+        ///1.2 Sắp xếp file theo tên giảm dần
         List<File> sortedFiles =
                 List.of(files).stream()
                         .sorted((f1, f2) -> f2.getName().compareTo(f1.getName())) // Giảm dần
                         .collect(Collectors.toList());
 
-        // Trả về file mới nhất
+        ///1.3 Trả về file mới nhất
         return sortedFiles.get(0);
     }
 
@@ -51,10 +51,10 @@ public class load_staging {
             File latestFile = getLatestJsonFile(folderPath);
             String fileName = latestFile.getName();
 
-            // Ghi log khi đọc dữ liệu từ file JSON
+            ///2. Ghi log khi đọc dữ liệu từ file JSON
             handleLog(new Log("INFO", "Bắt đầu đọc dữ liệu từ file JSON: " + fileName, "Load Staging", "READ"));
 
-            // Đọc dữ liệu từ file JSON với SummaryDeserializer
+            ///3. Đọc dữ liệu từ file JSON với SummaryDeserializer
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(new TypeToken<Map<String, String>>() {}.getType(), new SummaryDeserializer())
                     .create();
@@ -63,21 +63,21 @@ public class load_staging {
             // Đọc nội dung từ file JSON
             List<Product> products = gson.fromJson(new FileReader(latestFile), productListType);
 
-            // Ghi log khi đọc file thành công
+            ///4. Ghi log khi đọc file thành công
             handleLog(new Log("INFO", "Đọc dữ liệu từ file JSON thành công: " + fileName, "Load Staging", "READ_SUCCESS"));
 
             String mongoUrl = "mongodb+srv://root:root@darius.yjud9.mongodb.net/?retryWrites=true&w=majority&appName=loadToDW";
 
-            // Kết nối tới MongoDB
+            ///5. Kết nối tới MongoDB
             try (MongoClient mongoClient = MongoClients.create(mongoUrl)) {
                 MongoDatabase database = mongoClient.getDatabase("Staging"); // Tên database
                 MongoCollection<Document> collection = database.getCollection("ProductStaging"); // Tên collection
 
-                // Xóa dữ liệu cũ trong collection
+                ///6. Xóa dữ liệu cũ trong collection
                 collection.drop();
                 handleLog(new Log("INFO", "Đã xóa dữ liệu cũ trong collection ProductStaging.", "Load Staging", "DELETE"));
 
-                // Chèn dữ liệu mới vào MongoDB
+                ///7. Chèn dữ liệu mới vào MongoDB
                 for (Product product : products) {
                     Document doc = new Document()
                             .append("link", product.getLink())
