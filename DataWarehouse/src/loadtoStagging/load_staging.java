@@ -10,7 +10,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
+import loadDW.LoadToDW;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Type;
@@ -92,6 +92,7 @@ public class load_staging {
                 // Ghi log khi chèn dữ liệu thành công
                 handleLog(new Log("INFO", "Đã chèn " + products.size() + " sản phẩm vào collection ProductStaging.", "Load Staging", "INSERT"));
             }
+            LoadToDW.run();
         } catch (Exception e) {
             // Ghi log lỗi khi xảy ra lỗi
             handleLog(new Log("ERROR", "Lỗi khi load dữ liệu: " + e.getMessage(), "Load Staging", "ERROR"));

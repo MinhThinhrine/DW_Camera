@@ -3,6 +3,7 @@ package crawl_data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mongodb.client.MongoDatabase;
+import loadtoStagging.load_staging;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -167,7 +168,7 @@ public class DataCrawler {
         /// 9. Lưu file dạng json
         // Gửi dữ liệu qua staging
         saveProductsToJson(allProducts);
-
+        load_staging.main(new String[]{"run load_staging"});
 
         // In kết quả ra console
         DecimalFormat decimalFormat = new DecimalFormat("#,###");

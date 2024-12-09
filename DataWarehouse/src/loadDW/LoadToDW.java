@@ -66,7 +66,4 @@ public class LoadToDW {
         }
     }
 
-    public static void main(String[] args) {
-        LoadToDW.run();
-    }
 }
