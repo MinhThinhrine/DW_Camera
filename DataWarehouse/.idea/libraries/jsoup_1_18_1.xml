@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="gson-2.10.1">
+  <library name="jsoup-1.18.1">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../Dowload/gson-2.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Dowload/jsoup-1.18.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
