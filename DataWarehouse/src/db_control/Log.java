@@ -28,24 +28,6 @@ public class Log {
         this.stackTrace = stackTrace;
     }
 
-    // Function lưu Log vào DB
-    public void saveToDb(Connection connection) throws SQLException {
-        if (connection == null) {
-            throw new IllegalArgumentException("Database connection cannot be null");
-        }
-        if (message == null || level == null) {
-            throw new IllegalArgumentException("Log level and message cannot be null");
-        }
-        String sql = "INSERT INTO Log (timestamp, level, message, context, stack_trace) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setObject(1, this.timestamp);
-            preparedStatement.setString(2, this.level);
-            preparedStatement.setString(3, this.message);
-            preparedStatement.setString(4, this.context);
-            preparedStatement.setString(5, this.stackTrace != null ? this.stackTrace : ""); // Giá trị mặc định
-            preparedStatement.executeUpdate();
-        }
-    }
 
     public int getIdLog() {
         return idLog;

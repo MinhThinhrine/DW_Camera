@@ -54,7 +54,7 @@ public class LoadToDW {
 
             handleLog(new Log("INFO", "Tiến hành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
 
-            // Step 7: Remove documents from `dimProduct` that are no longer in `productStaging`
+            // Step 7: Read the 'title' data from productStaging
             var stagingTitles = new ArrayList<>();
             for (var doc : productStaging.find()) {
                 stagingTitles.add(doc.getString("title"));
