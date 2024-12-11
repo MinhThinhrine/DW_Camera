@@ -7,7 +7,6 @@ import org.bson.Document;
 
 import java.time.Instant;
 import java.util.ArrayList;
-
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.nin;
 import static db_control.DbControl.handleLog;
@@ -23,6 +22,8 @@ public class LoadToDW {
         try (
                 // Step 1: Connect to MongoDB server
                 var client = MongoClients.create(CONNECTION_URI)
+            // Step 1: Connect to MongoDB server
+            var client = MongoClients.create(CONNECTION_URI)
         ) {
             // Step 2: Connect to Stating database
             var stagingDb = client.getDatabase(STAGING_DATABASE);
@@ -54,6 +55,18 @@ public class LoadToDW {
 
             handleLog(new Log("INFO", "Tiến hành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
 
+            // Step 7: Remove documents from `dimProduct` that are no longer in `productStaging`
+            var stagingTitles = new ArrayList<>();
+            for (var doc : productStaging.find()) {
+                stagingTitles.add(doc.getString("title"));
+            }
+            // Step 7 (cont): Delete from `dimProduct` where `title` not in `productStaging`
+            dimProduct.deleteMany(nin("title", stagingTitles));
+
+            handleLog(new Log("INFO", "Hoàn thành thêm dữ liệu vào data warehouse.", "Data warehouse", null));
+
+            handleLog(new Log("INFO", "Tiến hành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
+
             // Step 7: Read the 'title' data from productStaging
             var stagingTitles = new ArrayList<>();
             for (var doc : productStaging.find()) {
@@ -66,4 +79,13 @@ public class LoadToDW {
         }
     }
 
+}
+            handleLog(new Log("INFO", "Hoàn thành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
+            handleLog(new Log("INFO", "Đã xong!", "Data warehouse", null));
+        }
+    }
+
+    public static void main(String[] args) {
+        LoadToDW.run();
+    }
 }
