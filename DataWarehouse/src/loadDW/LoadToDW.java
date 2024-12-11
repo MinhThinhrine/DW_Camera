@@ -7,13 +7,12 @@ import org.bson.Document;
 
 import java.time.Instant;
 import java.util.ArrayList;
-
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.nin;
 import static db_control.DbControl.handleLog;
 
 public class LoadToDW {
-    private static final String CONNECTION_URI = "mongodb+srv://root:root@my-cluster.j9mcl.mongodb.net/?retryWrites=true&w=majority&appName=my-cluster";
+    private static final String CONNECTION_URI = "mongodb+srv://root:root@darius.yjud9.mongodb.net/?retryWrites=true&w=majority&appName=darius";
     private static final String STAGING_DATABASE = "Staging";
     private static final String STAGING_PRODUCT = "productStagging";
     private static final String DATA_WAREHOUSE_DATABASE = "DataWarehouse";
@@ -21,6 +20,8 @@ public class LoadToDW {
 
     public static void run() {
         try (
+                // Step 1: Connect to MongoDB server
+                var client = MongoClients.create(CONNECTION_URI)
             // Step 1: Connect to MongoDB server
             var client = MongoClients.create(CONNECTION_URI)
         ) {
@@ -62,6 +63,23 @@ public class LoadToDW {
             // Step 7 (cont): Delete from `dimProduct` where `title` not in `productStaging`
             dimProduct.deleteMany(nin("title", stagingTitles));
 
+            handleLog(new Log("INFO", "Hoàn thành thêm dữ liệu vào data warehouse.", "Data warehouse", null));
+
+            handleLog(new Log("INFO", "Tiến hành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
+
+            // Step 7: Read the 'title' data from productStaging
+            var stagingTitles = new ArrayList<>();
+            for (var doc : productStaging.find()) {
+                stagingTitles.add(doc.getString("title"));
+            }// Step 8 (cont): Delete from `dimProduct` where `title` not in `productStaging`
+            dimProduct.deleteMany(nin("title", stagingTitles));
+
+            handleLog(new Log("INFO", "Hoàn thành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
+            handleLog(new Log("INFO", "Đã xong!", "Data warehouse", null));
+        }
+    }
+
+}
             handleLog(new Log("INFO", "Hoàn thành xóa dữ liệu trong data warehouse.", "Data warehouse", null));
             handleLog(new Log("INFO", "Đã xong!", "Data warehouse", null));
         }

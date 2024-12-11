@@ -1,5 +1,6 @@
 package db_control;
 
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -25,8 +26,21 @@ public class DbControl {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn"); // Chỉ ghi log ở mức WARN trở lên
     }
     public static MongoDatabase getConnection() {
-        MongoClient mongoClient = MongoClients.create(CONNECTION_STRING);
-        return mongoClient.getDatabase(DATABASE_NAME);
+        MongoClient mongoClient = null;
+        try {
+            /// 1.1 Complete
+            mongoClient = MongoClients.create(CONNECTION_STRING);
+            return mongoClient.getDatabase(DATABASE_NAME);
+        } catch (MongoException e) {
+            /// 1.2 Hiển thị lỗi
+            System.err.println("Error connecting to MongoDB: " + e.getMessage());
+            return null;
+        } finally {
+            /// Đóng connection
+            if (mongoClient != null) {
+                mongoClient.close();
+            }
+        }
     }
 
     // Xử lý ngoại lệ khi lưu Log
@@ -106,6 +120,7 @@ public class DbControl {
     }
 
     public static boolean canRunCrawl() {
+        /// Hàm check config từ database
         LocalDate today = LocalDate.now();
         String todayStr = today.toString(); // Định dạng thành yyyy-MM-dd
 
